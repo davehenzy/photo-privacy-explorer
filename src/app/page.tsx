@@ -17,17 +17,23 @@ export default function Home() {
   const [metadata, setMetadata] = useState<PhotoMetadata | null>(null);
   const [isCleaning, setIsCleaning] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileSelect = async (selectedFile: File) => {
     setIsScanning(true);
+    setError(null);
     setFile(selectedFile);
     
     try {
-      // Small artificial delay for premium "scanning" feel
-      await new Promise(r => setTimeout(r, 1500));
-      const arrayBuffer = await selectedFile.arrayBuffer();
+      // Memory Optimization for Mobile: Only parse the first 512KB (EXIF is in the header)
+      const slice = selectedFile.slice(0, 512 * 1024);
+      const arrayBuffer = await slice.arrayBuffer();
       const parsedData = parseExif(arrayBuffer);
+      await new Promise(r => setTimeout(r, 600));
       setMetadata(parsedData);
+    } catch (err) {
+      console.error("Audit error:", err);
+      setError("Failed to audit file. It may be too large or corrupted.");
     } finally {
       setIsScanning(false);
     }
@@ -124,7 +130,31 @@ export default function Home() {
               </motion.div>
             )}
 
-            {file && !isScanning && (
+            {error && !isScanning && (
+              <motion.div
+                 key="error-status"
+                 initial={{ opacity: 0, scale: 0.9 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 className="flex flex-col items-center gap-4 bg-red-950/40 backdrop-blur-2xl p-8 rounded-[2rem] border border-red-500/20 shadow-2xl pointer-events-auto"
+              >
+                <div className="text-4xl">❌</div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-red-400">Audit Failed</h3>
+                  <p className="text-gray-400 text-sm max-w-[250px] mt-2">{error}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setFile(null);
+                    setError(null);
+                  }}
+                  className="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-6 py-2 rounded-xl border border-red-500/20 text-xs font-bold uppercase tracking-widest transition-all"
+                >
+                  Try Again
+                </button>
+              </motion.div>
+            )}
+
+            {file && !isScanning && !error && (
               <motion.div
                 key="audit-status"
                 initial={{ opacity: 0, y: 10 }}

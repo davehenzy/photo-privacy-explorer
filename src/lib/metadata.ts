@@ -31,33 +31,47 @@ export function parseExif(arrayBuffer: ArrayBuffer): PhotoMetadata | null {
 
     // Extract GPS Tags
     if (rawData['GPSLatitude'] && rawData['GPSLongitude']) {
-      const lat = parseFloat(rawData['GPSLatitude'].description);
-      const lon = parseFloat(rawData['GPSLongitude'].description);
-      const latRefTag = rawData['GPSLatitudeRef'];
-      const lonRefTag = rawData['GPSLongitudeRef'];
-      
-      const latRef = (latRefTag && latRefTag.value && Array.isArray(latRefTag.value)) ? latRefTag.value[0] : (latRefTag?.value || 'N');
-      const lonRef = (lonRefTag && lonRefTag.value && Array.isArray(lonRefTag.value)) ? lonRefTag.value[0] : (lonRefTag?.value || 'E');
-
-      metadata.gps = {
-        latitude: String(latRef).includes('S') ? -Math.abs(lat) : Math.abs(lat),
-        longitude: String(lonRef).includes('W') ? -Math.abs(lon) : Math.abs(lon),
-      };
-
-      // GPS Bearing extraction
-      const bearingTag = rawData['GPSImgDirection'] || rawData['GPSDestBearing'];
-      if (bearingTag && bearingTag.value) {
-        const val = bearingTag.value;
-        let b = 0;
-        if (Array.isArray(val)) {
-          b = Number(val[0]) / (Number(val[1]) || 1);
-        } else {
-          b = Number(val);
-        }
+      try {
+        const lat = rawData['GPSLatitude'].description;
+        const lon = rawData['GPSLongitude'].description;
+        const latRefTag = rawData['GPSLatitudeRef'];
+        const lonRefTag = rawData['GPSLongitudeRef'];
         
-        if (!isNaN(b)) {
-          metadata.gps.bearing = b;
+        let finalLat = parseFloat(lat);
+        let finalLon = parseFloat(lon);
+
+        if (!isNaN(finalLat) && !isNaN(finalLon)) {
+          // Robust Ref Check
+          const latRef = String(latRefTag?.description || latRefTag?.value || 'N').toUpperCase();
+          const lonRef = String(lonRefTag?.description || lonRefTag?.value || 'E').toUpperCase();
+
+          metadata.gps = {
+            latitude: latRef.includes('S') ? -Math.abs(finalLat) : Math.abs(finalLat),
+            longitude: lonRef.includes('W') ? -Math.abs(finalLon) : Math.abs(finalLon),
+          };
+
+          // GPS Bearing extraction
+          const bearingTag = rawData['GPSImgDirection'] || rawData['GPSDestBearing'];
+          if (bearingTag) {
+            const bDesc = bearingTag.description;
+            const bVal = bearingTag.value;
+            let b = parseFloat(bDesc);
+            
+            if (isNaN(b) && bVal) {
+              if (Array.isArray(bVal)) {
+                b = Number(bVal[0]) / (Number(bVal[1]) || 1);
+              } else {
+                b = Number(bVal);
+              }
+            }
+            
+            if (!isNaN(b)) {
+              metadata.gps.bearing = b;
+            }
+          }
         }
+      } catch (e) {
+        console.error("GPS Parsing failed", e);
       }
     }
 
