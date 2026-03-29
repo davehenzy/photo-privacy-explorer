@@ -45,11 +45,22 @@ export default function Map({ center = [0, 20], zoom = 2, bearing }: MapProps) {
     const m = map.current;
 
     const updateMap = () => {
+      const isMobile = window.innerWidth < 768;
+      
+      // Calculate padding based on sidebar presence
+      const padding = (zoom > 2) ? {
+        right: isMobile ? 0 : 340,
+        bottom: isMobile ? (window.innerHeight * 0.5) : 0,
+        top: 0,
+        left: 0
+      } : { top: 0, right: 0, bottom: 0, left: 0 };
+
       m.flyTo({
         center,
-        zoom: zoom === 2 ? 2 : 15,
+        zoom: zoom === 2 ? 2 : 14.5,
         essential: true,
-        duration: 3000,
+        duration: 2500,
+        padding: padding,
       });
 
       // Remove existing marker
@@ -61,14 +72,13 @@ export default function Map({ center = [0, 20], zoom = 2, bearing }: MapProps) {
         const el = document.createElement('div');
         el.className = 'marker';
         el.innerHTML = `
-          <div style="position: relative;">
+          <div style="position: relative; display: flex; align-items: center; justify-content: center;">
             ${bearing !== undefined ? `
               <div style="
                 position: absolute;
                 bottom: 10px;
-                left: -50px;
-                width: 120px;
-                height: 120px;
+                width: 140px;
+                height: 140px;
                 background: radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.4) 0%, transparent 70%);
                 transform-origin: 50% 100%;
                 transform: rotate(${bearing}deg);

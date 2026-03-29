@@ -129,21 +129,21 @@ export default function Home() {
                 key="audit-status"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center gap-4 bg-black/60 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.8)] pointer-events-auto"
+                className="flex flex-col items-center gap-2 md:gap-4 bg-black/60 backdrop-blur-2xl p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.8)] pointer-events-auto w-[85vw] max-w-[400px]"
               >
-                <div className={`p-4 rounded-full border-2 ${metadata?.gps ? 'border-red-400 bg-red-400/10 text-red-400' : 'border-green-400 bg-green-400/10 text-green-400'}`}>
-                   <div className="text-4xl">
+                <div className={`p-3 md:p-4 rounded-full border-2 ${metadata?.gps ? 'border-red-400 bg-red-400/10 text-red-400' : 'border-green-400 bg-green-400/10 text-green-400'}`}>
+                   <div className="text-2xl md:text-4xl">
                      {metadata?.gps ? '⚠️' : '🛡️'}
                    </div>
                 </div>
                 <div className="text-center">
-                  <h2 className="text-3xl font-bold tracking-tight text-white mb-1">Audit Complete</h2>
-                  <p className="text-gray-400 font-mono text-[10px] uppercase tracking-[0.3em]">
-                    {file.name.length > 25 ? file.name.substring(0, 22) + '...' : file.name}
+                  <h2 className="text-xl md:text-3xl font-bold tracking-tight text-white mb-1">Audit Complete</h2>
+                  <p className="text-gray-400 font-mono text-[8px] md:text-[10px] uppercase tracking-[0.3em] truncate max-w-[200px] md:max-w-none">
+                    {file.name}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase border border-white/10">
-                  <div className={`h-1.5 w-1.5 rounded-full ${metadata?.gps ? 'bg-red-400' : 'bg-green-400'} animate-pulse`} />
+                <div className="flex items-center gap-2 bg-white/5 px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[8px] md:text-[10px] font-bold tracking-widest uppercase border border-white/10">
+                  <div className={`h-1 w-1 md:h-1.5 md:w-1.5 rounded-full ${metadata?.gps ? 'bg-red-400' : 'bg-green-400'} animate-pulse`} />
                   <span className={metadata?.gps ? 'text-red-300' : 'text-green-300'}>
                     {metadata?.gps ? 'Vulnerabilities Found' : 'Privacy Verified'}
                   </span>
