@@ -17,7 +17,7 @@ export interface PhotoMetadata {
 
 export function parseExif(arrayBuffer: ArrayBuffer): PhotoMetadata | null {
   try {
-    const rawData = ExifReader.load(arrayBuffer) as any;
+    const rawData = ExifReader.load(arrayBuffer) as Record<string, { description: string; value: any }>;
     const metadata: PhotoMetadata = {};
 
     // Extract Basic Tags
