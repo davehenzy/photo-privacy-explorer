@@ -41,12 +41,34 @@ export default function Sidebar({ metadata, onClean,
               <span>Location Data</span>
             </div>
             <div className="text-sm font-mono text-gray-300">
-              <p>LAT: {metadata.gps.latitude.toFixed(6)}</p>
-              <p>LNG: {metadata.gps.longitude.toFixed(6)}</p>
+              <div className="mb-2">
+                <p>LAT: {metadata.gps.latitude.toFixed(6)}</p>
+                <p>LNG: {metadata.gps.longitude.toFixed(6)}</p>
+              </div>
               {metadata.gps.bearing !== undefined && (
-                <div className="flex items-center gap-1 mt-1 text-xs text-blue-500/80">
-                  <Compass size={12} className="animate-spin-slow" />
-                  <span>Direction detected: {metadata.gps.bearing.toFixed(1)}°</span>
+                <div className="flex flex-col gap-2 p-2 bg-primary-5 rounded-lg border border-primary-30">
+                  <div className="flex items-center gap-2 text-primary font-bold">
+                    <Compass size={16} className="animate-spin-slow" />
+                    <span>Shooting Angle</span>
+                  </div>
+                  <div className="flex justify-between items-end">
+                    <span className="text-2xl font-bold tracking-tight">
+                      {metadata.gps.bearing.toFixed(1)}°
+                    </span>
+                    <span className="text-xs uppercase bg-primary px-2 py-0.5 rounded text-white font-bold">
+                      {(() => {
+                        const deg = metadata.gps.bearing;
+                        if (deg >= 337.5 || deg < 22.5) return 'North';
+                        if (deg >= 22.5 && deg < 67.5) return 'North-East';
+                        if (deg >= 67.5 && deg < 112.5) return 'East';
+                        if (deg >= 112.5 && deg < 157.5) return 'South-East';
+                        if (deg >= 157.5 && deg < 202.5) return 'South';
+                        if (deg >= 202.5 && deg < 247.5) return 'South-West';
+                        if (deg >= 247.5 && deg < 292.5) return 'West';
+                        return 'North-West';
+                      })()}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>

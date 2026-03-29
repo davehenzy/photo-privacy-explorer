@@ -17,7 +17,7 @@ export interface PhotoMetadata {
 
 export function parseExif(arrayBuffer: ArrayBuffer): PhotoMetadata | null {
   try {
-    const rawData = ExifReader.load(arrayBuffer);
+    const rawData = ExifReader.load(arrayBuffer) as any;
     const metadata: PhotoMetadata = {};
 
     // Extract Basic Tags
@@ -31,21 +31,33 @@ export function parseExif(arrayBuffer: ArrayBuffer): PhotoMetadata | null {
 
     // Extract GPS Tags
     if (rawData['GPSLatitude'] && rawData['GPSLongitude']) {
-      const lat = rawData['GPSLatitude'].description as unknown as number;
-      const lon = rawData['GPSLongitude'].description as unknown as number;
-      const latRef = rawData['GPSLatitudeRef']?.value?.[0] || 'N';
-      const lonRef = rawData['GPSLongitudeRef']?.value?.[0] || 'E';
+      const lat = parseFloat(rawData['GPSLatitude'].description);
+      const lon = parseFloat(rawData['GPSLongitude'].description);
+      const latRefTag = rawData['GPSLatitudeRef'];
+      const lonRefTag = rawData['GPSLongitudeRef'];
+      
+      const latRef = (latRefTag && latRefTag.value && Array.isArray(latRefTag.value)) ? latRefTag.value[0] : (latRefTag?.value || 'N');
+      const lonRef = (lonRefTag && lonRefTag.value && Array.isArray(lonRefTag.value)) ? lonRefTag.value[0] : (lonRefTag?.value || 'E');
 
       metadata.gps = {
-        latitude: latRef === 'S' ? -Math.abs(lat) : Math.abs(lat),
-        longitude: lonRef === 'W' ? -Math.abs(lon) : Math.abs(lon),
+        latitude: String(latRef).includes('S') ? -Math.abs(lat) : Math.abs(lat),
+        longitude: String(lonRef).includes('W') ? -Math.abs(lon) : Math.abs(lon),
       };
 
-      // GPS Bearing
-      if (rawData['GPSDestBearing']) {
-        metadata.gps.bearing = rawData['GPSDestBearing'].value as unknown as number;
-      } else if (rawData['GPSImgDirection']) {
-        metadata.gps.bearing = rawData['GPSImgDirection'].value as unknown as number;
+      // GPS Bearing extraction
+      const bearingTag = rawData['GPSImgDirection'] || rawData['GPSDestBearing'];
+      if (bearingTag && bearingTag.value) {
+        const val = bearingTag.value;
+        let b = 0;
+        if (Array.isArray(val)) {
+          b = Number(val[0]) / (Number(val[1]) || 1);
+        } else {
+          b = Number(val);
+        }
+        
+        if (!isNaN(b)) {
+          metadata.gps.bearing = b;
+        }
       }
     }
 
